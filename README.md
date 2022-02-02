@@ -4,6 +4,32 @@ This repository allows you run a full bitcoin network in an isolated environment
 
 This is useful because normally in regtest mode you would generate all coins in the same wallet as where you'd send the coins. With this setup, you can use one node to generate the coins and then send it to one of the other nodes, which can then again send it to another node to simulate more real-life bitcoin usage.
 
+
+## Use the rpc.py utility
+
+Exec any [rpc command](https://developer.bitcoin.org/reference/rpc/index.html).
+
+Tested with python 3.8, no extra dependency.
+
+Examples:
+```
+python3 rpc.py -c getblockchaininfo
+```
+If you want to request the node1 on port 18401 (by default its the miner node on 18400).
+```
+python3 rpc.py -c getblockchaininfo -p 18401
+```
+To add the list of params, use -l followed with parameter
+```
+python3 rpc.py -c getblockfilter -l "00000000c937983704a73af" "basic"
+```
+
+Use the --depth (-d) option to print the json response with a defined depth.
+By default the entire json is printed to the screen.
+```
+python3 rpc.py -c getblockchaininfo -d 2
+```
+
 ## Usage
 
 Simple run

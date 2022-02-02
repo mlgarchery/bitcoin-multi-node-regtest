@@ -24,3 +24,4 @@ services:
     expose: 
       - "18444"
     command: [ "-addnode=node1:18444", "-addnode=miner:18444"]
+    
