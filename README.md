@@ -4,32 +4,6 @@ This repository allows you run a full bitcoin network in an isolated environment
 
 This is useful because normally in regtest mode you would generate all coins in the same wallet as where you'd send the coins. With this setup, you can use one node to generate the coins and then send it to one of the other nodes, which can then again send it to another node to simulate more real-life bitcoin usage.
 
-
-## Use the rpc.py utility
-
-Exec any [rpc command](https://developer.bitcoin.org/reference/rpc/index.html).
-
-Tested with python 3.8, no extra dependency.
-
-Examples:
-```
-python3 rpc.py -c getblockchaininfo
-```
-If you want to request the node1 on port 18401 (by default its the miner node on 18400).
-```
-python3 rpc.py -c getblockchaininfo -p 18401
-```
-To add the list of params, use -l followed with parameter
-```
-python3 rpc.py -c getblockfilter -l "00000000c937983704a73af" "basic"
-```
-
-Use the --depth (-d) option to print the json response with a defined depth.
-By default the entire json is printed to the screen.
-```
-python3 rpc.py -c getblockchaininfo -d 2
-```
-
 ## Usage
 
 Simple run
@@ -46,9 +20,35 @@ to start all the containers. This will start the bitcoin nodes, and expose RPC o
 
 \* Port as exposed on the host running docker.
 
-## Samples
+## Use the rpc.py utility
 
-Note these samples use `curl` to exercise the API, but this would usually be `bitcoin-cli`. We're using `curl` so we don't have a dependency on bitcoin in the host.
+Exec any [rpc command](https://developer.bitcoin.org/reference/rpc/index.html). It's curl command under the hood.
+
+Tested with python 3.8, no extra dependency.
+
+Examples:
+```
+python3 rpc.py -c getblockchaininfo
+```
+(`chmod +x rpc.py` to relieve you from typing python3)
+
+If you want to request the node1 on port 18401 (by default its the miner node on 18400).
+```
+./rpc.py -c getblockchaininfo -p 18401
+```
+To add the list of params, use -l followed with parameter
+```
+./rpc.py -c getblockfilter -l "00000000c937983704a73af" "basic"
+```
+
+Use the --depth (-d) option to print the json response with a defined depth.
+By default the entire json is printed to the screen.
+```
+./rpc.py -c getblockchaininfo -d 2
+```
+
+
+## Samples
 
 ### Initial block count
 
@@ -59,8 +59,10 @@ root@ubuntu-xenial:/home/vagrant/bitcoin-docker# docker-compose up -d
 Creating bitcoindocker_miner_1 ... done
 Creating bitcoindocker_node1_1 ... done
 Creating bitcoindocker_node2_1 ... done
-root@ubuntu-xenial:/home/vagrant/bitcoin-docker# curl -d '{"jsonrpc":"2.0","id":"1","method":"getblockcount"}' -u bitcoin:bitcoin localhost:18400
-{"result":0,"error":null,"id":"1"}
+$ ./rpc.py -c getblockcount
+---
+Response:
+{'error': None, 'id': '1', 'result': 0}
 ```
 
 ### Check connected nodes
@@ -68,20 +70,16 @@ root@ubuntu-xenial:/home/vagrant/bitcoin-docker# curl -d '{"jsonrpc":"2.0","id":
 Check the "miner" node is connected to other nodes.
 
 ```
-root@ubuntu-xenial:/home/vagrant/bitcoin-docker# curl -d '{"jsonrpc":"2.0","id":"1","method":"getpeerinfo","params":[]}' -u bitcoin:bitcoin -s localhost:18400 | jq '.result[] | {addr, inbound} '
-{
-  "addr": "node1:18444",
-  "inbound": false
-}
-{
-  "addr": "172.18.0.3:34908",
-  "inbound": true
-}
-{
-  "addr": "node2:18444",
-  "inbound": false
-}
+$ ./rpc.py -c getpeerinfo --filter addr inbound
+---
+Response:
+{'addr': '172.18.0.3:42586', 'inbound': True}
+{'addr': 'node2:18444', 'inbound': False}
+{'addr': '172.18.0.4:54714', 'inbound': True}
+{'addr': 'node1:18444', 'inbound': False}
 ```
+
+The `--filter` option keeps json dicts in the response that contains all given filters.
 
 ### Mine some blocks and see other nodes are updating their block count
 
