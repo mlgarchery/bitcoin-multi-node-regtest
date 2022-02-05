@@ -5,10 +5,11 @@ from typing import List
 
 def filter_dict(obj: dict, keys: List[str], l: list):
     """
-    Add to l the dicts of obj containing key
+    Add to l the dicts of obj containing keys (AND)
     """
     # termination
-    if not isinstance(obj, dict): return
+    if not isinstance(obj, dict): 
+        return
     if all(map(lambda x: x in obj, keys)):
         l.append({key: obj[key] for key in keys})
     # recursivity
@@ -17,6 +18,16 @@ def filter_dict(obj: dict, keys: List[str], l: list):
         if isinstance(v, list):
             for el in v:
                 filter_dict(el, keys, l)
+
+def filter(obj, keys: List[str])-> list:
+    l = []
+    if isinstance(obj, list):
+        for el in obj:
+            filter_dict(el, keys, l)
+    elif isinstance(obj, dict):
+        filter_dict(obj, keys, l)
+    return l
+
 
 if __name__ == "__main__":
     l = []
