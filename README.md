@@ -84,20 +84,68 @@ The `--filter` option keeps json dicts in the response that contains all given f
 ### Mine some blocks and see other nodes are updating their block count
 
 ```
-# mine the blocks
-root@ubuntu-xenial:/home/vagrant/bitcoin-docker# curl -d '{"jsonrpc":"2.0","id":"1","method":"generate","params":[101]}' -u bitcoin:bitcoin -s localhost:18400
-{"result":["229e6fc0599e198f6f9bdc04cb9a0d7f494f2c8b36f3cec354c85c2507ae21d2", ... 
-<snip> 
-...,"39b792af704cad1f26d2d2e34d91d784b88217b663a6d4eff5512fb6f588d4d5"],"error":null,"id":"1"}
-
-# check on node1
-root@ubuntu-xenial:/home/vagrant/bitcoin-docker# curl -d '{"jsonrpc":"2.0","id":"1","method":"getblockcount","params":[]}' -u bitcoin:bitcoin -s localhost:18401
-{"result":101,"error":null,"id":"1"}
-
-# check on node2
-root@ubuntu-xenial:/home/vagrant/bitcoin-docker# curl -d '{"jsonrpc":"2.0","id":"1","method":"getblockcount","params":[]}' -u bitcoin:bitcoin -s localhost:18402
-{"result":101,"error":null,"id":"1"}
+# create a wallet
+$ ./rpc.py -c createwallet -l newwallet
+---
+{'mine': {'immature': 0.0, 'trusted': 0.0, 'untrusted_pending': 0.0}}
 ```
+
+```
+# check wallet balances
+$ ./rpc.py -c getbalance
+---
+0.0
+```
+
+```
+# get a new address
+$ ./rpc.py -c getnewaddress
+---
+bcrt1qvg0g3guc9ljxl7fg2w4sgl08kupk2nrrlrz9dv
+
+$ NEW_ADDRESS=bcrt1qvg0g3guc9ljxl7fg2w4sgl08kupk2nrrlrz9dv
+```
+
+Use the `generatetoaddress` cmd to mine a block and send the BTC to the specified address
+```
+generatetoaddress nblocks "address" ( maxtries )
+
+Mine blocks immediately to a specified address (before the RPC call returns)
+
+Arguments:
+1. nblocks     (numeric, required) How many blocks are generated immediately.
+2. address     (string, required) The address to send the newly generated bitcoin to.
+3. maxtries    (numeric, optional, default=1000000) How many iterations to try.
+
+Result:
+[           (json array) hashes of blocks generated
+  "hex",    (string) blockhash
+  ...
+]
+```
+```
+$ ./rpc.py -c generatetoaddress -l 1 $NEW_ADDRESS 
+---
+721beabd06276757967d00bf4d2f7fac3d82bd0005ff0c37a6e14d11d394d91d
+```
+```
+$ ./rpc.py -c getbalances
+---
+{'mine': {'immature': 50.0, 'trusted': 0.0, 'untrusted_pending': 0.0}}
+```
+
+Check if the other nodes synced the new block:
+```
+$ ./rpc.py -c getblockcount -p 18401
+---
+1
+```
+
+Create a new wallet on node1, and a new address. Save its public key in a variable.
+
+
+
+
 
 ### Send bitcoin from miner to another node
 

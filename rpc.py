@@ -6,7 +6,7 @@ import subprocess
 
 from utils.filter import filter
 from utils.printing import prettyprint
-from utils.convert import str_to_int
+from utils.convert import find_type_and_convert
 
 parser = argparse.ArgumentParser()
 
@@ -20,7 +20,7 @@ parser.add_argument("-s", "--showcurl", action="store_true", help="Show the curl
 
 args = parser.parse_args()
 
-args.params = list(map(str_to_int, args.params))
+args.params = list(map(find_type_and_convert, args.params))
 
 
 if __name__ == '__main__':
