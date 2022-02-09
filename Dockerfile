@@ -17,4 +17,4 @@ EXPOSE 18444/tcp
 # p2p
 EXPOSE 18443/tcp
 
-ENTRYPOINT ["/bitcoin-22.0/bin/bitcoind", "-regtest", "-printtoconsole"]
+ENTRYPOINT ["/bitcoin-22.0/bin/bitcoind", "-printtoconsole"]

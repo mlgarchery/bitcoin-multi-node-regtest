@@ -1,6 +1,16 @@
 version: '3'
 services:
+  client:
+    image: client_bitcoin
+    build:
+      context: .
+      dockerfile: ./client/Dockerfile
+    ports:
+      - "18400"
+      - "18401"
+      - "18402"
   miner:
+    image: miner_bitcoin
     build: .
     ports:
       - "18400:18443"
@@ -9,6 +19,7 @@ services:
       - "18444"
     command: [ "-addnode=node1:18444", "-addnode=node2:18444"]
   node1:
+    image: node1_bitcoin
     build: .
     ports:
       - "18401:18443"
@@ -17,6 +28,7 @@ services:
       - "18444"
     command: [ "-addnode=miner:18444", "-addnode=node2:18444"]
   node2:
+    image: node2_bitcoin
     build: .
     ports:
       - "18402:18443"

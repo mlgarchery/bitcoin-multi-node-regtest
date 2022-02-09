@@ -20,31 +20,39 @@ to start all the containers. This will start the bitcoin nodes, and expose RPC o
 
 \* Port as exposed on the host running docker.
 
-## Use the rpc.py utility
+## Use bitcoin-cli
 
-Exec any [rpc command](https://developer.bitcoin.org/reference/rpc/index.html). It's curl command under the hood.
+Exec any [rpc command](https://developer.bitcoin.org/reference/rpc/index.html)
 
-Tested with python 3.8, no extra dependency.
-
-Examples:
+Do:
 ```
-python3 rpc.py -c getblockchaininfo
+docker-compose up
+# then connect to the client
+docker run  --net=host -it client_bitcoin
+```
+
+From there you can exec command, example:
+```
+root@laptop:/# ./bitcoin-cli getpeerinfo | jq ".[]|{addr, addrbind}"
+```
+
+the "jq .." part is just a way to filter the json response.
+
+
+Scenarios:
+```
+./bitcoin-cli getblockchaininfo
 ```
 (`chmod +x rpc.py` to relieve you from typing python3)
 
 If you want to request the node1 on port 18401 (by default its the miner node on 18400).
 ```
-./rpc.py -c getblockchaininfo -p 18401
-```
-To add the list of params, use -l followed with parameter
-```
-./rpc.py -c getblockfilter -l "00000000c937983704a73af" "basic"
+./bitcoin-cli --rpcport=18401 getblockchaininfo 
 ```
 
-Use the --depth (-d) option to print the json response with a defined depth.
-By default the entire json is printed to the screen.
+With an argument:
 ```
-./rpc.py -c getblockchaininfo -d 2
+./bitcoin-cli getblockchaininfo 2
 ```
 
 
@@ -55,13 +63,8 @@ By default the entire json is printed to the screen.
 Checks that the initial block count is 0.
 
 ```
-root@ubuntu-xenial:/home/vagrant/bitcoin-docker# docker-compose up -d
-Creating bitcoindocker_miner_1 ... done
-Creating bitcoindocker_node1_1 ... done
-Creating bitcoindocker_node2_1 ... done
-$ ./rpc.py -c getblockcount
----
-Response:
+getblockcount
+
 {'error': None, 'id': '1', 'result': 0}
 ```
 
@@ -70,37 +73,34 @@ Response:
 Check the "miner" node is connected to other nodes.
 
 ```
-$ ./rpc.py -c getpeerinfo --filter addr inbound
----
-Response:
+getpeerinfo | jq ".[]|{addr, inbound}"
+
 {'addr': '172.18.0.3:42586', 'inbound': True}
 {'addr': 'node2:18444', 'inbound': False}
 {'addr': '172.18.0.4:54714', 'inbound': True}
 {'addr': 'node1:18444', 'inbound': False}
 ```
 
-The `--filter` option keeps json dicts in the response that contains all given filters.
-
 ### Mine some blocks and see other nodes are updating their block count
 
 ```
 # create a wallet
-$ ./rpc.py -c createwallet -l newwallet
----
+createwallet newwallet
+
 {'mine': {'immature': 0.0, 'trusted': 0.0, 'untrusted_pending': 0.0}}
 ```
 
 ```
 # check wallet balances
-$ ./rpc.py -c getbalance
----
+ getbalance
+
 0.0
 ```
 
 ```
 # get a new address
-$ ./rpc.py -c getnewaddress
----
+ getnewaddress
+
 bcrt1qvg0g3guc9ljxl7fg2w4sgl08kupk2nrrlrz9dv
 
 $ NEW_ADDRESS=bcrt1qvg0g3guc9ljxl7fg2w4sgl08kupk2nrrlrz9dv
@@ -124,27 +124,54 @@ Result:
 ]
 ```
 ```
-$ ./rpc.py -c generatetoaddress -l 1 $NEW_ADDRESS 
----
+generatetoaddress 1 $NEW_ADDRESS 
+
 721beabd06276757967d00bf4d2f7fac3d82bd0005ff0c37a6e14d11d394d91d
 ```
 ```
-$ ./rpc.py -c getbalances
----
-{'mine': {'immature': 50.0, 'trusted': 0.0, 'untrusted_pending': 0.0}}
+getbalances
+
+{
+  "mine": {
+    "trusted": 0.00000000,
+    "untrusted_pending": 0.00000000,
+    "immature": 50.00000000
+  }
+}
+
 ```
 
 Check if the other nodes synced the new block:
 ```
-$ ./rpc.py -c getblockcount -p 18401
----
+getblockcount -p 18401
+
 1
 ```
 
 Create a new wallet on node1, and a new address. Save its public key in a variable.
 
+```
+root@laptop:/# ./bitcoin-cli --rpcport=18401 createwallet node1wallet
+{
+  "name": "node1wallet",
+  "warning": ""
+}
+```
+```
+root@laptop:/# ./bitcoin-cli --rpcport=18401 getnewaddress
+bcrt1qjvrh5vkqnlplndualacu4jtl7fm7dc7sc6p0ta
+root@laptop:/# NODE1_ADDRESS=bcrt1qjvrh5vkqnlplndualacu4jtl7fm7dc7sc6p0ta
+```
 
+Don't forget the *-named* parameter:
+```
+root@laptop:/# ./bitcoin-cli -named sendtoaddress address=$NODE1_ADDRESS amount=0.5 fee_rate=25
+error code: -6
+error message:
+Insufficient funds
+```
 
+Send with senttoaddress
 
 
 ### Send bitcoin from miner to another node
