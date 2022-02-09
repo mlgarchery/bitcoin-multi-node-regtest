@@ -1,3 +1,7 @@
+## Requirements
+
+You need `docker` and `docker-compose` to be installed on your machine.
+
 # Multinode / Multiwallet Bitcoin regtest network
 
 This repository allows you run a full bitcoin network in an isolated environment. It uses bitcoin's regtest capability to setup an isolated bitcoin network, and then uses docker to setup a network with 3 nodes.
@@ -12,11 +16,11 @@ Simple run
 
 to start all the containers. This will start the bitcoin nodes, and expose RPC on all of them. The nodes will run on the following ports:
 
-| Node | P2P port * | RPC port * | RPC Username | RPC Password |
-| --- | --- | --- | --- | ---|
-| miner1 | 18500 | 18400 | bitcoin | bitcoin |
-| node1 | 18501 | 18401 | bitcoin | bitcoin |
-| node2 | 18502 | 18402 | bitcoin | bitcoin |
+| Node | P2P port  | **RPC port** |
+| --- | --- | --- |
+| miner1_bitcoin | 18500 | **18400**| 
+| node1_bitcoin | 18501 | **18401** | 
+| node2_bitcoin | 18502 | **18402** | 
 
 \* Port as exposed on the host running docker.
 
@@ -27,23 +31,21 @@ Exec any [rpc command](https://developer.bitcoin.org/reference/rpc/index.html)
 Do:
 ```
 docker-compose up
-# then connect to the client
-docker run  --net=host -it client_bitcoin
+```
+then connect to the client
+```
+docker run --net=host -it client_bitcoin
 ```
 
-From there you can exec command, example:
-```
-root@laptop:/# ./bitcoin-cli getpeerinfo | jq ".[]|{addr, addrbind}"
-```
-
-the "jq .." part is just a way to filter the json response.
-
-
-Scenarios:
+From there you can exec command, examples:
 ```
 ./bitcoin-cli getblockchaininfo
 ```
-(`chmod +x rpc.py` to relieve you from typing python3)
+
+```
+root@laptop:/# ./bitcoin-cli getpeerinfo | jq ".[]|{addr, addrbind}"
+```
+the "jq .." part is just a easy way to filter the json response see https://jqplay.org/.
 
 If you want to request the node1 on port 18401 (by default its the miner node on 18400).
 ```
@@ -52,15 +54,19 @@ If you want to request the node1 on port 18401 (by default its the miner node on
 
 With an argument:
 ```
-./bitcoin-cli getblockchaininfo 2
+./bitcoin-cli sendtoaddress $ADDR 1
+```
+With named arguments:
+```
+./bitcoin-cli -named sendtoaddress address=$ADDR amount=1 fee_rate=1
 ```
 
 
-## Samples
+## Transactions
 
 ### Initial block count
 
-Checks that the initial block count is 0.
+Check that the initial block count is 0.
 
 ```
 getblockcount
@@ -128,6 +134,13 @@ generatetoaddress 1 $NEW_ADDRESS
 
 721beabd06276757967d00bf4d2f7fac3d82bd0005ff0c37a6e14d11d394d91d
 ```
+Check if the other nodes synced the new block:
+```
+getblockcount -p 18401
+
+1
+```
+
 ```
 getbalances
 
@@ -138,18 +151,11 @@ getbalances
     "immature": 50.00000000
   }
 }
-
 ```
+Our fund is *immature* cause not enough blocks are after it (the current length of the blockchain known by the node is not sufficiently long) 
 
-Check if the other nodes synced the new block:
-```
-getblockcount -p 18401
-
-1
-```
 
 Create a new wallet on node1, and a new address. Save its public key in a variable.
-
 ```
 root@laptop:/# ./bitcoin-cli --rpcport=18401 createwallet node1wallet
 {
@@ -171,8 +177,10 @@ error message:
 Insufficient funds
 ```
 
-Send with senttoaddress
+See TD.md for more.
 
+
+## OLD (to refactor)
 
 ### Send bitcoin from miner to another node
 
@@ -282,8 +290,52 @@ root@ubuntu-xenial:/home/vagrant/bitcoin-docker# curl -d '{"jsonrpc":"2.0","id":
 }
 
 # node2
-root@ubuntu-xenial:/home/vagrant/bitcoin-docker# curl -d '{"jsonrpc":"2.0","id":"1","method":"listtransactions","params":["", 150]}' -u bitcoin:bitcoin -s localhost:18402
-{"result":[],"error":null,"id":"1"}
+root@ubuntu-xenial:/home/vag
+importaddress "address" ( "label" rescan p2sh )
+importdescriptors "requests"
+importmulti "requests" ( "options" )
+importprivkey "privkey" ( "label" rescan )
+importprunedfunds "rawtransaction" "txoutproof"
+importpubkey "pubkey" ( "label" rescan )
+importwallet "filename"
+keypoolrefill ( newsize )
+listaddressgroupings
+listdescriptors
+listlabels ( "purpose" )
+listlockunspent
+listreceivedbyaddress ( minconf include_empty include_watchonly "address_filter" )
+listreceivedbylabel ( minconf include_empty include_watchonly )
+listsinceblock ( "blockhash" target_confirmations include_watchonly include_removed )
+listtransactions ( "label" count skip include_watchonly )
+listunspent ( minconf maxconf ["address",...] include_unsafe query_options )
+listwalletdir
+listwallets
+loadwallet "filename" ( load_on_startup )
+lockunspent unlock ( [{"txid":"hex","vout":n},...] )
+psbtbumpfee "txid" ( options )
+removeprunedfunds "txid"
+rescanblockchain ( start_height stop_height )
+send [{"address":amount,...},{"data":"hex"},...] ( conf_target "estimate_mode" fee_rate options )
+sendmany "" {"address":amount,...} ( minconf "comment" ["address",...] replaceable conf_target "estimate_mode" fee_rate verbose )
+sendtoaddress "address" amount ( "comment" "comment_to" subtractfeefromamount replaceable conf_target "estimate_mode" avoid_reuse fee_rate verbose )
+sethdseed ( newkeypool "seed" )
+setlabel "address" "label"
+settxfee amount
+setwalletflag "flag" ( value )
+signmessage "address" "message"
+signrawtransactionwithwallet "hexstring" ( [{"txid":"hex","vout":n,"scriptPubKey":"hex","redeemScript":"hex","witnessScript":"hex","amount":amount},...] "sighashtype" )
+unloadwallet ( "wallet_name" load_on_startup )
+upgradewallet ( version )
+walletcreatefundedpsbt ( [{"txid":"hex","vout":n,"sequence":n},...] ) [{"address":amount,...},{"data":"hex"},...] ( locktime options bip32derivs )
+walletdisplayaddress bitcoin address to display
+walletlock
+walletpassphrase "passphrase" timeout
+walletpassphrasechange "oldpassphrase" "newpassphrase"
+walletprocesspsbt "psbt" ( sign "sighashtype" bip32derivs )
+
+== Zmq ==
+getzmqnotifications
+d":"1"}
 
 # Try getting the transaction
 # node1:
@@ -331,8 +383,3 @@ root@ubuntu-xenial:/home/vagrant/bitcoin-docker# curl -d '{"jsonrpc":"2.0","id":
 root@ubuntu-xenial:/home/vagrant/bitcoin-docker# curl -d '{"jsonrpc":"2.0","id":"1","method":"getrawtransaction","params":["0c0bd722bc5534ec715e31c70e913e887dcdf6cf15438ed890c1a5b56a631d65", true]}' -u bitcoin:bitcoin -s localhost:18402
 {"result":{"txid":"0c0bd722bc5534ec715e31c70e913e887dcdf6cf15438ed890c1a5b56a631d65","hash":"0c0bd722bc5534ec715e31c70e913e887dcdf6cf15438ed890c1a5b56a631d65","version":2,"size":188,"vsize":188,"locktime":101,"vin":[{"txid":"75aa43e3c1f2e4094190339b1d7aa605e06cd5a6fe68db1fcc23ff2f1b54d57d","vout":0,"scriptSig":{"asm":"304502210093f7c7b47eff76fc0e4926bb10942bfb90c8d9f5dc430dd0cb0a191908191cb10220522bcc869bd8fa44e5f8d865c8988da53ae875a05ae3fa3cabe2cf5fe1aa0310[ALL]","hex":"48304502210093f7c7b47eff76fc0e4926bb10942bfb90c8d9f5dc430dd0cb0a191908191cb10220522bcc869bd8fa44e5f8d865c8988da53ae875a05ae3fa3cabe2cf5fe1aa031001"},"sequence":4294967294}],"vout":[{"value":3.14000000,"n":0,"scriptPubKey":{"asm":"OP_HASH160 d5044b6ca6c83a0d0f182dc1f939285d7650bae4 OP_EQUAL","hex":"a914d5044b6ca6c83a0d0f182dc1f939285d7650bae487","reqSigs":1,"type":"scripthash","addresses":["2NCfZ4YFssjjGp5xQjnDMKLFRy8XP4W4TYo"]}},{"value":46.85996240,"n":1,"scriptPubKey":{"asm":"OP_HASH160 b11e110167018be58797913289c0747e1b916879 OP_EQUAL","hex":"a914b11e110167018be58797913289c0747e1b91687987","reqSigs":1,"type":"scripthash","addresses":["2N9PjcHmezjNzi4KAuj1ajKVACYmM7CWw3m"]}}],"hex":"02000000017dd5541b2fff23cc1fdb68fea6d56ce005a67a1d9b33904109e4f2c1e343aa75000000004948304502210093f7c7b47eff76fc0e4926bb10942bfb90c8d9f5dc430dd0cb0a191908191cb10220522bcc869bd8fa44e5f8d865c8988da53ae875a05ae3fa3cabe2cf5fe1aa031001feffffff028042b7120000000017a914d5044b6ca6c83a0d0f182dc1f939285d7650bae487d0a04e170100000017a914b11e110167018be58797913289c0747e1b9168798765000000","blockhash":"1d5df158d1aecf18b893a0f5cd91fe782a0f8b53b028fff3b5892ff9beaf7134","confirmations":101,"time":1523422840,"blocktime":1523422840},"error":null,"id":"1"}
 ```
-
-
-## Requirements
-
-To run this you need both `docker` and `docker-compose`. It was tested on a clean Ubuntu 16.04 with the docker-ce package from Docker. 

@@ -5,10 +5,6 @@ services:
     build:
       context: .
       dockerfile: ./client/Dockerfile
-    ports:
-      - "18400"
-      - "18401"
-      - "18402"
   miner:
     image: miner_bitcoin
     build: .
