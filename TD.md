@@ -1,18 +1,16 @@
-Those exploration exercice should be done on a network of node running bitcoind with default config
+Those exploration exercices should be done on a network of nodes running bitcoind with default config.
 (bitcoin.conf empty, or so).
-
-Solution with
 
 # After how many blocks is a mined coin considered mature ?
 
-After 100 more block then the block it was mined.
+After 100 more blocks than the block it was mined in.
 Test it with the commands:
 - `createwallet <mywallet>`
 - `loadwallet <mywallet>` (if not alrdy loaded)
 - `./bitcoin-cli -generate 100`
 
 (-generate = getnewaddress + generatetoaddress)
-it will generate 100 block and consider the fund to be the property of the new
+it will generate 100 blocks and consider the fund to be the property of the new
 address.
 
 - `getbalances`
@@ -27,7 +25,6 @@ generates one more block then recheck with gebalances: you now have 50BTC truste
 Given two transactions A and B where B spends an output of A:
 - Both A and B may be included in the same block.
 - A must precede B in the transaction list.
-
 --- 
 I am curious about unrelated transactions - how are they ordered? Surely a timestamp is insufficient? If it is a UUID, how is it ordered? – Angad
 
@@ -44,7 +41,7 @@ Create a wallet on node1:
 And a new addr in $ADDRTO:
 - `getnewaddress`
 
-it return the transaction id (txid), hexadecimal.
+it returns the transaction id (txid), hexadecimal.
 - `./bitcoin-cli -named sendtoaddress address=$ADDRTO amount=0.1 fee_rate=1`
 4de5b666931d2fcb32a43275fb3484f03995c9fb331aba20b367000022bc1d8f
 
@@ -62,7 +59,7 @@ getmempooldescendants 5f2652bc87d40e451118fa3773976fa4852a2dc377b78c721c1d257f1a
 ```
 getmempoolancestors also doesn't returns anything as the txs are not linked.
 
-Mine a few block to be sure node1 as mature found.
+Mine a few blocks to be sure node1 has mature found.
 Then
 ```
 ./bitcoin-cli --rpcport=18401 -named sendtoaddress address=$MINERADDR amount=3 fee_rate=1 
@@ -89,7 +86,7 @@ Then
 }
 ```
 
-300 millions transactions
+300 millions bytes
 
 # What about the mempool overflow risk ? how is it mitigated.
 
@@ -97,7 +94,7 @@ Then
 
 TODO
 
-So Block 1 generate 50BTC and Block 2 generates 50BTC
+So Block 1 generates 50BTC and Block 2 generates 50BTC
 
 Test this with `-generate` or `generatetoaddress`
 
